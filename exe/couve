@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "./lib/couve"
+require_relative "../lib/couve"
 
 Couve.start

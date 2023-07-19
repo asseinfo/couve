@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "couve/version"
-require "couve/parser"
+require_relative "couve/version"
+require_relative "couve/parser"
 
 module Couve
   def self.start
