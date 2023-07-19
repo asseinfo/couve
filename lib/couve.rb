@@ -4,7 +4,10 @@ require_relative "couve/version"
 require_relative "couve/parser"
 
 module Couve
-  def self.start(coverage_file, output_file)
+  def self.start
+    coverage_file = ARGV[0]
+    output_file = ARGV[1]
+
     coverage = File.read(coverage_file)
     parser = Couve::Parser.new(coverage)
 

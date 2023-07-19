@@ -12,10 +12,10 @@ RSpec.describe Couve do
       File.delete(output_file) if File.exist?(output_file)
       expect(File.exist?(output_file)).to be false
 
-      subject.start(
-        "spec/fixtures/codeclimate.json",
-        output_file
-      )
+      expect(ARGV).to receive(:[]).with(0).and_return("spec/fixtures/codeclimate.json")
+      expect(ARGV).to receive(:[]).with(1).and_return(output_file)
+
+      subject.start
 
       expect(File.exist?(output_file)).to be true
 
