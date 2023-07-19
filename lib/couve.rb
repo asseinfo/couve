@@ -1,7 +1,15 @@
 # frozen_string_literal: true
 
 require_relative "couve/version"
+require_relative "couve/parser"
 
 module Couve
-  puts ARGV[0]
+  def self.start(coverage_file, output_file)
+    coverage = File.read(coverage_file)
+    parser = Couve::Parser.new(coverage)
+
+    File.open(output_file, "w") do |f|
+      f.puts parser.to_html
+    end
+  end
 end

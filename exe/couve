@@ -3,4 +3,4 @@
 
 require "./lib/couve"
 
-Couve
+Couve.start
