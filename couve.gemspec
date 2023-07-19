@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors = ["Cezinha"]
   spec.email = ["cesar@asseinfo.com.br"]
 
-  spec.summary = "Generater human readable report for CodeClimate test-reporter gem."
+  spec.summary = "Generate a human readable report for CodeClimate test-reporter gem."
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.

@@ -3,6 +3,5 @@
 require_relative "couve/version"
 
 module Couve
-  class Error < StandardError; end
-  # Your code goes here...
+  puts ARGV[0]
 end
