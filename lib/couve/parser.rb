@@ -20,7 +20,7 @@ class Couve::Parser
               <thead>
                 <tr>
                   <th class="col-1 text-end">Coverage</th>
-                  <th>File</th>
+                  <th class="col-8">File</th>
                   <th class="col-3">Not covered lines</th>
                 </tr>
               </thead>
@@ -42,9 +42,9 @@ class Couve::Parser
 
     @coverage[:source_files].each do |source_file|
       html << "  <tr>"
-      html << "    <td class=\"text-end\">#{source_file[:covered_percent].round(2)}%</td>"
-      html << "    <td>#{source_file[:name]}</td>"
-      html << "    <td>#{not_covered_lines(source_file)}</td>"
+      html << "    <td class=\"col-1 text-end\">#{source_file[:covered_percent].round(2)}%</td>"
+      html << "    <td class=\"col-8 text-break\">#{source_file[:name]}</td>"
+      html << "    <td class=\"col-3 text-break\">#{not_covered_lines(source_file)}</td>"
       html << "  </tr>"
     end
 

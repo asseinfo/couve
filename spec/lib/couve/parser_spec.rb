@@ -59,25 +59,25 @@ RSpec.describe Couve::Parser do
               <thead>
                 <tr>
                   <th class="col-1 text-end">Coverage</th>
-                  <th>File</th>
+                  <th class="col-8">File</th>
                   <th class="col-3">Not covered lines</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td class="text-end">89%</td>
-                  <td>app/javascript/index.tsx</td>
-                  <td></td>
+                  <td class="col-1 text-end">89%</td>
+                  <td class="col-8 text-break">app/javascript/index.tsx</td>
+                  <td class="col-3 text-break"></td>
                 </tr>
                 <tr>
-                  <td class="text-end">95%</td>
-                  <td>app/javascript/routes.jsx</td>
-                  <td></td>
+                  <td class="col-1 text-end">95%</td>
+                  <td class="col-8 text-break">app/javascript/routes.jsx</td>
+                  <td class="col-3 text-break"></td>
                 </tr>
                 <tr>
-                  <td class="text-end">99%</td>
-                  <td>app/graphql/resolvers/people_resolver.rb</td>
-                  <td></td>
+                  <td class="col-1 text-end">99%</td>
+                  <td class="col-8 text-break">app/graphql/resolvers/people_resolver.rb</td>
+                  <td class="col-3 text-break"></td>
                 </tr>
               </tbody>
             </table>
@@ -118,9 +118,9 @@ RSpec.describe Couve::Parser do
     COVERAGE
 
     expected = []
-    expected << "<td class=\"text-end\">95%</td>"
-    expected << "<td>app/javascript/routes.jsx</td>"
-    expected << "<td>38</td>"
+    expected << "<td class=\"col-1 text-end\">95%</td>"
+    expected << "<td class=\"col-8 text-break\">app/javascript/routes.jsx</td>"
+    expected << "<td class=\"col-3 text-break\">38</td>"
 
     subject = described_class.new(coverage)
 
@@ -152,19 +152,19 @@ RSpec.describe Couve::Parser do
 
     expected = []
     expected << "<tr>"
-    expected << "  <td class=\"text-end\">60%</td>"
-    expected << "  <td>app/graphql/resolvers/people_resolver.rb</td>"
-    expected << "  <td>22, 24, 33, 34, 36, 39, 43, 48, 49, 51</td>"
+    expected << "  <td class=\"col-1 text-end\">60%</td>"
+    expected << "  <td class=\"col-8 text-break\">app/graphql/resolvers/people_resolver.rb</td>"
+    expected << "  <td class=\"col-3 text-break\">22, 24, 33, 34, 36, 39, 43, 48, 49, 51</td>"
     expected << "</tr>"
     expected << "<tr>"
-    expected << "  <td class=\"text-end\">83.33%</td>"
-    expected << "  <td>app/javascript/routes.jsx</td>"
-    expected << "  <td>24</td>"
+    expected << "  <td class=\"col-1 text-end\">83.33%</td>"
+    expected << "  <td class=\"col-8 text-break\">app/javascript/routes.jsx</td>"
+    expected << "  <td class=\"col-3 text-break\">24</td>"
     expected << "</tr>"
     expected << "<tr>"
-    expected << "  <td class=\"text-end\">93.33%</td>"
-    expected << "  <td>app/javascript/index.tsx</td>"
-    expected << "  <td>28</td>"
+    expected << "  <td class=\"col-1 text-end\">93.33%</td>"
+    expected << "  <td class=\"col-8 text-break\">app/javascript/index.tsx</td>"
+    expected << "  <td class=\"col-3 text-break\">28</td>"
     expected << "</tr>"
 
     subject = described_class.new(coverage)
@@ -197,19 +197,19 @@ RSpec.describe Couve::Parser do
 
     expected = []
     expected << "<tr>"
-    expected << "  <td class=\"text-end\">60%</td>"
-    expected << "  <td>app/graphql/resolvers/people_resolver.rb</td>"
-    expected << "  <td>22, 24, 33, 34, 36, 39, 43, 48, 49, 51</td>"
+    expected << "  <td class=\"col-1 text-end\">60%</td>"
+    expected << "  <td class=\"col-8 text-break\">app/graphql/resolvers/people_resolver.rb</td>"
+    expected << "  <td class=\"col-3 text-break\">22, 24, 33, 34, 36, 39, 43, 48, 49, 51</td>"
     expected << "</tr>"
     expected << "<tr>"
-    expected << "  <td class=\"text-end\">83.33%</td>"
-    expected << "  <td>app/javascript/routes.jsx</td>"
-    expected << "  <td>24</td>"
+    expected << "  <td class=\"col-1 text-end\">83.33%</td>"
+    expected << "  <td class=\"col-8 text-break\">app/javascript/routes.jsx</td>"
+    expected << "  <td class=\"col-3 text-break\">24</td>"
     expected << "</tr>"
     expected << "<tr>"
-    expected << "  <td class=\"text-end\">93.33%</td>"
-    expected << "  <td>app/javascript/index.tsx</td>"
-    expected << "  <td>28</td>"
+    expected << "  <td class=\"col-1 text-end\">93.33%</td>"
+    expected << "  <td class=\"col-8 text-break\">app/javascript/index.tsx</td>"
+    expected << "  <td class=\"col-3 text-break\">28</td>"
     expected << "</tr>"
 
     subject = described_class.new(coverage)
