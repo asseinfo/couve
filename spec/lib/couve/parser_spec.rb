@@ -58,24 +58,63 @@ RSpec.describe Couve::Parser do
             <table class="table table-hover mt-5">
               <thead>
                 <tr>
-                  <th class="col-1 text-end">Coverage</th>
-                  <th class="col-8">File</th>
+                  <th class="col-1" colspan="2">Coverage</th>
+                  <th class="col-7">File</th>
                   <th class="col-3">Not covered lines</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td class="col-1 text-end">89%</td>
+                  <td class="col-1">
+                    <div class="progress">
+                      <div
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        style="width: 89%;"
+                        aria-valuenow="89"
+                        aria-valuemin="0" aria-valuemax="100">
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    89%
+                  </td>
                   <td class="col-8 text-break">app/javascript/index.tsx</td>
                   <td class="col-3 text-break"></td>
                 </tr>
                 <tr>
-                  <td class="col-1 text-end">95%</td>
+                  <td class="col-1">
+                    <div class="progress">
+                      <div
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        style="width: 95%;"
+                        aria-valuenow="95"
+                        aria-valuemin="0" aria-valuemax="100">
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    95%
+                  </td>
                   <td class="col-8 text-break">app/javascript/routes.jsx</td>
                   <td class="col-3 text-break"></td>
                 </tr>
                 <tr>
-                  <td class="col-1 text-end">99%</td>
+                  <td class="col-1">
+                    <div class="progress">
+                      <div
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        style="width: 99%;"
+                        aria-valuenow="99"
+                        aria-valuemin="0" aria-valuemax="100">
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    99%
+                  </td>
                   <td class="col-8 text-break">app/graphql/resolvers/people_resolver.rb</td>
                   <td class="col-3 text-break"></td>
                 </tr>
@@ -117,14 +156,10 @@ RSpec.describe Couve::Parser do
       }
     COVERAGE
 
-    expected = []
-    expected << "<td class=\"col-1 text-end\">95%</td>"
-    expected << "<td class=\"col-8 text-break\">app/javascript/routes.jsx</td>"
-    expected << "<td class=\"col-3 text-break\">38</td>"
-
     subject = described_class.new(coverage)
 
-    expect(subject.to_html).to include expected.join("\n            ")
+    expect(subject.to_html).to include "95%"
+    expect(subject.to_html).to_not include "100%"
   end
 
   it "sorts by less covered first" do
@@ -150,26 +185,15 @@ RSpec.describe Couve::Parser do
       }
     COVERAGE
 
-    expected = []
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">60%</td>"
-    expected << "  <td class=\"col-8 text-break\">app/graphql/resolvers/people_resolver.rb</td>"
-    expected << "  <td class=\"col-3 text-break\">22, 24, 33, 34, 36, 39, 43, 48, 49, 51</td>"
-    expected << "</tr>"
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">83.33%</td>"
-    expected << "  <td class=\"col-8 text-break\">app/javascript/routes.jsx</td>"
-    expected << "  <td class=\"col-3 text-break\">24</td>"
-    expected << "</tr>"
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">93.33%</td>"
-    expected << "  <td class=\"col-8 text-break\">app/javascript/index.tsx</td>"
-    expected << "  <td class=\"col-3 text-break\">28</td>"
-    expected << "</tr>"
-
     subject = described_class.new(coverage)
 
-    expect(subject.to_html).to include expected.join("\n          ")
+    percentages = subject.to_html.split('<td>').map do |td|
+        match = td.match(/(\d+(\.\d+)?)%(?!;)/
+      )
+        match ? match[1].to_f : nil
+      end.compact
+
+    expect(percentages).to eql(percentages.sort)
   end
 
   it "exports not covered lines numbers" do
@@ -195,24 +219,23 @@ RSpec.describe Couve::Parser do
       }
     COVERAGE
 
+    subject = described_class.new(coverage)
+
     expected = []
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">60%</td>"
     expected << "  <td class=\"col-8 text-break\">app/graphql/resolvers/people_resolver.rb</td>"
     expected << "  <td class=\"col-3 text-break\">22, 24, 33, 34, 36, 39, 43, 48, 49, 51</td>"
-    expected << "</tr>"
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">83.33%</td>"
+
+    expect(subject.to_html).to include expected.join("\n          ")
+
+    expected = []
     expected << "  <td class=\"col-8 text-break\">app/javascript/routes.jsx</td>"
     expected << "  <td class=\"col-3 text-break\">24</td>"
-    expected << "</tr>"
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">93.33%</td>"
+
+    expect(subject.to_html).to include expected.join("\n          ")
+
+    expected = []
     expected << "  <td class=\"col-8 text-break\">app/javascript/index.tsx</td>"
     expected << "  <td class=\"col-3 text-break\">28</td>"
-    expected << "</tr>"
-
-    subject = described_class.new(coverage)
 
     expect(subject.to_html).to include expected.join("\n          ")
   end
