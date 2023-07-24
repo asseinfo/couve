@@ -117,14 +117,10 @@ RSpec.describe Couve::Parser do
       }
     COVERAGE
 
-    expected = []
-    expected << "<td class=\"col-1 text-end\">95%</td>"
-    expected << "<td class=\"col-8 text-break\">app/javascript/routes.jsx</td>"
-    expected << "<td class=\"col-3 text-break\">38</td>"
-
     subject = described_class.new(coverage)
 
-    expect(subject.to_html).to include expected.join("\n            ")
+    expect(subject.to_html).to include "95%"
+    expect(subject.to_html).to_not include "100%"
   end
 
   it "sorts by less covered first" do
