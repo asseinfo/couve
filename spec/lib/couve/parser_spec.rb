@@ -2,6 +2,7 @@
 
 require "couve/parser"
 require "nokogiri"
+require "byebug"
 
 RSpec.describe Couve::Parser do
   it "returns an html report" do
@@ -187,6 +188,37 @@ RSpec.describe Couve::Parser do
     found_percentages = td_elements.map { |td| td.text.strip }
 
     expect(found_percentages).to eql ["60%", "83.33%", "93.33%"]
+  end
+
+  fdescribe 'coverage level colors' do
+    it 'is red when coverage is less than 33.33%' do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            {
+              "coverage": "[]",
+              "covered_percent": 0,
+              "name": ""
+            },
+            {
+              "coverage": "[]",
+              "covered_percent": 33.32,
+              "name": ""
+            }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+
+      doc = Nokogiri::HTML(subject.to_html)
+
+      td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-danger\"")
+
+      td_elements = doc.css("tbody tr:nth-child(2) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-danger\"")
+    end
   end
 
   it "exports not covered lines numbers" do
