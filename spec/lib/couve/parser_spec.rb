@@ -191,7 +191,7 @@ RSpec.describe Couve::Parser do
   end
 
   fdescribe 'coverage level colors' do
-    it 'is red when coverage is less than 33.33%' do
+    it "is red when coverage is less than 33.33%" do
       coverage = <<~COVERAGE
         {
           "source_files": [
@@ -218,6 +218,64 @@ RSpec.describe Couve::Parser do
 
       td_elements = doc.css("tbody tr:nth-child(2) td:nth-child(1) .progress")
       expect(td_elements.to_s).to include("<div class=\"progress-bar bg-danger\"")
+    end
+
+    it "is yellow when coverage is between 33.34% and 66.65%" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            {
+              "coverage": "[]",
+              "covered_percent": 33.34,
+              "name": ""
+            },
+            {
+              "coverage": "[]",
+              "covered_percent": 66.65,
+              "name": ""
+            }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+
+      doc = Nokogiri::HTML(subject.to_html)
+
+      td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-warning\"")
+
+      td_elements = doc.css("tbody tr:nth-child(2) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-warning\"")
+    end
+
+    it "is green when coverage is greater than 66.65%" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            {
+              "coverage": "[]",
+              "covered_percent": 66.66,
+              "name": ""
+            },
+            {
+              "coverage": "[]",
+              "covered_percent": 99.99,
+              "name": ""
+            }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+
+      doc = Nokogiri::HTML(subject.to_html)
+
+      td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-success\"")
+
+      td_elements = doc.css("tbody tr:nth-child(2) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-success\"")
     end
   end
 
