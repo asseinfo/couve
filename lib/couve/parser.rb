@@ -40,6 +40,8 @@ module Couve
 
     private
 
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/AbcSize
     def body
       html = ["<tbody>"]
 
@@ -69,6 +71,8 @@ module Couve
 
       html.join("\n        ")
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
 
     def percentage_bar_color(percentage)
       if percentage < 33.33
