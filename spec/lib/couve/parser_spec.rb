@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "couve/parser"
+require "nokogiri"
+require "byebug"
 
 RSpec.describe Couve::Parser do
   it "returns an html report" do
@@ -58,24 +60,57 @@ RSpec.describe Couve::Parser do
             <table class="table table-hover mt-5">
               <thead>
                 <tr>
-                  <th class="col-1 text-end">Coverage</th>
-                  <th class="col-8">File</th>
+                  <th class="col-1" colspan="2">Coverage</th>
+                  <th class="col-7">File</th>
                   <th class="col-3">Not covered lines</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td class="col-1 text-end">89%</td>
+                  <td class="col-1">
+                    <div class="progress">
+                      <div
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        style="width: 89%;"
+                        aria-valuenow="89"
+                        aria-valuemin="0" aria-valuemax="100">
+                      </div>
+                    </div>
+                  </td>
+                  <td class="col-1">89%</td>
                   <td class="col-8 text-break">app/javascript/index.tsx</td>
                   <td class="col-3 text-break"></td>
                 </tr>
                 <tr>
-                  <td class="col-1 text-end">95%</td>
+                  <td class="col-1">
+                    <div class="progress">
+                      <div
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        style="width: 95%;"
+                        aria-valuenow="95"
+                        aria-valuemin="0" aria-valuemax="100">
+                      </div>
+                    </div>
+                  </td>
+                  <td class="col-1">95%</td>
                   <td class="col-8 text-break">app/javascript/routes.jsx</td>
                   <td class="col-3 text-break"></td>
                 </tr>
                 <tr>
-                  <td class="col-1 text-end">99%</td>
+                  <td class="col-1">
+                    <div class="progress">
+                      <div
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        style="width: 99%;"
+                        aria-valuenow="99"
+                        aria-valuemin="0" aria-valuemax="100">
+                      </div>
+                    </div>
+                  </td>
+                  <td class="col-1">99%</td>
                   <td class="col-8 text-break">app/graphql/resolvers/people_resolver.rb</td>
                   <td class="col-3 text-break"></td>
                 </tr>
@@ -146,26 +181,99 @@ RSpec.describe Couve::Parser do
       }
     COVERAGE
 
-    expected = []
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">60%</td>"
-    expected << "  <td class=\"col-8 text-break\">app/graphql/resolvers/people_resolver.rb</td>"
-    expected << "  <td class=\"col-3 text-break\">22, 24, 33, 34, 36, 39, 43, 48, 49, 51</td>"
-    expected << "</tr>"
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">83.33%</td>"
-    expected << "  <td class=\"col-8 text-break\">app/javascript/routes.jsx</td>"
-    expected << "  <td class=\"col-3 text-break\">24</td>"
-    expected << "</tr>"
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">93.33%</td>"
-    expected << "  <td class=\"col-8 text-break\">app/javascript/index.tsx</td>"
-    expected << "  <td class=\"col-3 text-break\">28</td>"
-    expected << "</tr>"
-
     subject = described_class.new(coverage)
 
-    expect(subject.to_html).to include expected.join("\n          ")
+    doc = Nokogiri::HTML(subject.to_html)
+    td_elements = doc.css("tbody tr td:nth-child(2)")
+    found_percentages = td_elements.map { |td| td.text.strip }
+
+    expect(found_percentages).to eql ["60%", "83.33%", "93.33%"]
+  end
+
+  describe "coverage level colors" do
+    it "is red when coverage is less than 33.33%" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            {
+              "coverage": "[]",
+              "covered_percent": 0,
+              "name": ""
+            },
+            {
+              "coverage": "[]",
+              "covered_percent": 33.32,
+              "name": ""
+            }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+      doc = Nokogiri::HTML(subject.to_html)
+
+      td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-danger\"")
+
+      td_elements = doc.css("tbody tr:nth-child(2) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-danger\"")
+    end
+
+    it "is yellow when coverage is between 33.34% and 66.65%" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            {
+              "coverage": "[]",
+              "covered_percent": 33.34,
+              "name": ""
+            },
+            {
+              "coverage": "[]",
+              "covered_percent": 66.65,
+              "name": ""
+            }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+      doc = Nokogiri::HTML(subject.to_html)
+
+      td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-warning\"")
+
+      td_elements = doc.css("tbody tr:nth-child(2) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-warning\"")
+    end
+
+    it "is green when coverage is greater than 66.65%" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            {
+              "coverage": "[]",
+              "covered_percent": 66.66,
+              "name": ""
+            },
+            {
+              "coverage": "[]",
+              "covered_percent": 99.99,
+              "name": ""
+            }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+      doc = Nokogiri::HTML(subject.to_html)
+
+      td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-success\"")
+
+      td_elements = doc.css("tbody tr:nth-child(2) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-success\"")
+    end
   end
 
   it "exports not covered lines numbers" do
@@ -191,24 +299,23 @@ RSpec.describe Couve::Parser do
       }
     COVERAGE
 
+    subject = described_class.new(coverage)
+
     expected = []
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">60%</td>"
     expected << "  <td class=\"col-8 text-break\">app/graphql/resolvers/people_resolver.rb</td>"
     expected << "  <td class=\"col-3 text-break\">22, 24, 33, 34, 36, 39, 43, 48, 49, 51</td>"
-    expected << "</tr>"
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">83.33%</td>"
+
+    expect(subject.to_html).to include expected.join("\n          ")
+
+    expected = []
     expected << "  <td class=\"col-8 text-break\">app/javascript/routes.jsx</td>"
     expected << "  <td class=\"col-3 text-break\">24</td>"
-    expected << "</tr>"
-    expected << "<tr>"
-    expected << "  <td class=\"col-1 text-end\">93.33%</td>"
+
+    expect(subject.to_html).to include expected.join("\n          ")
+
+    expected = []
     expected << "  <td class=\"col-8 text-break\">app/javascript/index.tsx</td>"
     expected << "  <td class=\"col-3 text-break\">28</td>"
-    expected << "</tr>"
-
-    subject = described_class.new(coverage)
 
     expect(subject.to_html).to include expected.join("\n          ")
   end

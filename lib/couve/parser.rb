@@ -22,8 +22,8 @@ module Couve
               <table class="table table-hover mt-5">
                 <thead>
                   <tr>
-                    <th class="col-1 text-end">Coverage</th>
-                    <th class="col-8">File</th>
+                    <th class="col-1" colspan="2">Coverage</th>
+                    <th class="col-7">File</th>
                     <th class="col-3">Not covered lines</th>
                   </tr>
                 </thead>
@@ -40,12 +40,28 @@ module Couve
 
     private
 
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/AbcSize
     def body
       html = ["<tbody>"]
 
       @coverage[:source_files].each do |source_file|
+        percentage = source_file[:covered_percent].round(2)
+        bg_color = percentage_bar_color(percentage)
+
         html << "  <tr>"
-        html << "    <td class=\"col-1 text-end\">#{source_file[:covered_percent].round(2)}%</td>"
+        html << "    <td class=\"col-1\">"
+        html << "      <div class=\"progress\">"
+        html << "        <div"
+        html << "          class=\"progress-bar #{bg_color}\""
+        html << "          role=\"progressbar\""
+        html << "          style=\"width: #{percentage}%;\""
+        html << "          aria-valuenow=\"#{percentage}\""
+        html << "          aria-valuemin=\"0\" aria-valuemax=\"100\">"
+        html << "        </div>"
+        html << "      </div>"
+        html << "    </td>"
+        html << "    <td class=\"col-1\">#{percentage}%</td>"
         html << "    <td class=\"col-8 text-break\">#{source_file[:name]}</td>"
         html << "    <td class=\"col-3 text-break\">#{not_covered_lines(source_file)}</td>"
         html << "  </tr>"
@@ -54,6 +70,18 @@ module Couve
       html << "</tbody>"
 
       html.join("\n        ")
+    end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
+
+    def percentage_bar_color(percentage)
+      if percentage < 33.33
+        "bg-danger"
+      elsif percentage < 66.66
+        "bg-warning"
+      else
+        "bg-success"
+      end
     end
 
     def not_covered_lines(source_file)
