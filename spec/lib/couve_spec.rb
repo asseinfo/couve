@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "fileutils"
+
 RSpec.describe Couve do
   it "has a version number" do
     expect(Couve::VERSION).not_to be nil
@@ -9,7 +11,7 @@ RSpec.describe Couve do
     it "generates the html report" do
       output_file = "tmp/coverage.html"
 
-      File.delete(output_file) if File.exist?(output_file)
+      FileUtils.rm_f(output_file)
       expect(File.exist?(output_file)).to be false
 
       expect(ARGV).to receive(:[]).with(0).and_return("spec/fixtures/codeclimate.json")
