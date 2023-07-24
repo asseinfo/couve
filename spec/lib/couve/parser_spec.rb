@@ -190,7 +190,7 @@ RSpec.describe Couve::Parser do
     expect(found_percentages).to eql ["60%", "83.33%", "93.33%"]
   end
 
-  fdescribe 'coverage level colors' do
+  describe "coverage level colors" do
     it "is red when coverage is less than 33.33%" do
       coverage = <<~COVERAGE
         {
@@ -210,7 +210,6 @@ RSpec.describe Couve::Parser do
       COVERAGE
 
       subject = described_class.new(coverage)
-
       doc = Nokogiri::HTML(subject.to_html)
 
       td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
@@ -239,7 +238,6 @@ RSpec.describe Couve::Parser do
       COVERAGE
 
       subject = described_class.new(coverage)
-
       doc = Nokogiri::HTML(subject.to_html)
 
       td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
@@ -268,7 +266,6 @@ RSpec.describe Couve::Parser do
       COVERAGE
 
       subject = described_class.new(coverage)
-
       doc = Nokogiri::HTML(subject.to_html)
 
       td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
