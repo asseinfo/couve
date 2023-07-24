@@ -7,6 +7,7 @@ Gem::Specification.new do |spec|
   spec.version = Couve::VERSION
   spec.authors = ["Cezinha"]
   spec.email = ["cesar@asseinfo.com.br"]
+  spec.metadata = { "rubygems_mfa_required" => "true" }
 
   spec.summary = "Generate a human readable report for CodeClimate test-reporter gem."
 
@@ -20,6 +21,7 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib", "lib/couve"]
+  spec.required_ruby_version = ">= 3"
 
   # Uncomment to register a new dependency of your gem
   # spec.add_dependency "example-gem", "~> 1.0"
