@@ -1,0 +1,28 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  linter:
+    strategy:
+      fail-fast: false # I understand this is to run on all versions.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.3
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0.3'
+          bundler-cache: true
+      - run: bundle exec rubocop --display-cop-names --parallel
+
+  rspec:
+    strategy:
+      fail-fast: false # I understand this is to run on all versions.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.3
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0.3'
+          bundler-cache: true
+      - run: bundle exec rspec
