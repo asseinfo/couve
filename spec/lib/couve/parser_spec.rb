@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "couve/parser"
+require "nokogiri"
 
 RSpec.describe Couve::Parser do
   it "returns an html report" do
@@ -76,9 +77,7 @@ RSpec.describe Couve::Parser do
                       </div>
                     </div>
                   </td>
-                  <td>
-                    89%
-                  </td>
+                  <td class="col-1">89%</td>
                   <td class="col-8 text-break">app/javascript/index.tsx</td>
                   <td class="col-3 text-break"></td>
                 </tr>
@@ -94,9 +93,7 @@ RSpec.describe Couve::Parser do
                       </div>
                     </div>
                   </td>
-                  <td>
-                    95%
-                  </td>
+                  <td class="col-1">95%</td>
                   <td class="col-8 text-break">app/javascript/routes.jsx</td>
                   <td class="col-3 text-break"></td>
                 </tr>
@@ -112,9 +109,7 @@ RSpec.describe Couve::Parser do
                       </div>
                     </div>
                   </td>
-                  <td>
-                    99%
-                  </td>
+                  <td class="col-1">99%</td>
                   <td class="col-8 text-break">app/graphql/resolvers/people_resolver.rb</td>
                   <td class="col-3 text-break"></td>
                 </tr>
@@ -187,13 +182,11 @@ RSpec.describe Couve::Parser do
 
     subject = described_class.new(coverage)
 
-    percentages = subject.to_html.split('<td>').map do |td|
-        match = td.match(/(\d+(\.\d+)?)%(?!;)/
-      )
-        match ? match[1].to_f : nil
-      end.compact
+    doc = Nokogiri::HTML(subject.to_html)
+    td_elements = doc.css("tbody tr td:nth-child(2)")
+    found_percentages = td_elements.map { |td| td.text.strip }
 
-    expect(percentages).to eql(percentages.sort)
+    expect(found_percentages).to eql ["60%", "83.33%", "93.33%"]
   end
 
   it "exports not covered lines numbers" do
