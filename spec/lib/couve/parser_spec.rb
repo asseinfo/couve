@@ -319,4 +319,150 @@ RSpec.describe Couve::Parser do
 
     expect(subject.to_html).to include expected.join("\n          ")
   end
+
+  describe "#to_markdown" do
+    it "returns a markdown report" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            {
+              "coverage": "[1,1,10,null,null,null,null,null,null,10,null,null,1,7,null,7,4,null,4,null,3,null,null,null,1,null,1,0,null,null,null,null,null,1,7,null,null,null,null,null,null,null]",
+              "covered_percent": 93.33333333333333,
+              "name": "app/javascript/index.tsx"
+            },
+            {
+              "coverage": "[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,6,null,6,null,null,12,0,null,12,null,null,null,6]",
+              "covered_percent": 50,
+              "name": "app/javascript/routes.jsx"
+            },
+            {
+              "coverage": "[2,2,2,null,null,null,null,null,null,2,2,2,2,null,null,null,2,null,2,2,null,0,null,0,null,null,2,null,null,2,2,null,0,0,null,0,null,null,0,null,2,null,0,null,null,null,2,0,0,null,0,null,null]",
+              "covered_percent": 30,
+              "name": "app/graphql/resolvers/people_resolver.rb"
+            }
+          ]
+        }
+      COVERAGE
+
+      expected = <<~MARKDOWN
+        ## Coverage problems
+
+        | Rating | Coverage | File | Not covered lines |
+        | :---: | ---: | :--- | :--- |
+        | 🔴 | 30% | app/graphql/resolvers/people_resolver.rb | 22, 24, 33, 34, 36, 39, 43, 48, 49, 51 |
+        | 🟡 | 50% | app/javascript/routes.jsx | 24 |
+        | 🟢 | 93.33% | app/javascript/index.tsx | 28 |
+      MARKDOWN
+
+      subject = described_class.new(coverage)
+
+      expect(subject.to_markdown).to eql expected
+    end
+
+    it "does not export files 100% covered" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            {
+              "coverage": "[1,1]",
+              "covered_percent": 100,
+              "name": "app/javascript/index.tsx"
+            },
+            {
+              "coverage": "[1,0]",
+              "covered_percent": 95,
+              "name": "app/javascript/routes.jsx"
+            }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+
+      expect(subject.to_markdown).to include "95%"
+      expect(subject.to_markdown).to_not include "100%"
+      expect(subject.to_markdown).to_not include "index.tsx"
+    end
+
+    it "sorts by less covered first" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            {
+              "coverage": "[]",
+              "covered_percent": 93.33333333333333,
+              "name": "app/javascript/index.tsx"
+            },
+            {
+              "coverage": "[]",
+              "covered_percent": 83.33333333333334,
+              "name": "app/javascript/routes.jsx"
+            },
+            {
+              "coverage": "[]",
+              "covered_percent": 60,
+              "name": "app/graphql/resolvers/people_resolver.rb"
+            }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+
+      rows = subject.to_markdown.lines.grep(/\| /).reject { |line| line.include?("---") || line.include?("Coverage |") }
+      found_percentages = rows.map { |row| row[/\d+(\.\d+)?%/] }
+
+      expect(found_percentages).to eql ["60%", "83.33%", "93.33%"]
+    end
+
+    describe "coverage level indicators" do
+      it "is red when coverage is less than 33.33%" do
+        coverage = <<~COVERAGE
+          {
+            "source_files": [
+              { "coverage": "[]", "covered_percent": 0, "name": "a" },
+              { "coverage": "[]", "covered_percent": 33.32, "name": "b" }
+            ]
+          }
+        COVERAGE
+
+        subject = described_class.new(coverage)
+
+        expect(subject.to_markdown).to include "| 🔴 | 0% | a |"
+        expect(subject.to_markdown).to include "| 🔴 | 33.32% | b |"
+      end
+
+      it "is yellow when coverage is between 33.34% and 66.65%" do
+        coverage = <<~COVERAGE
+          {
+            "source_files": [
+              { "coverage": "[]", "covered_percent": 33.34, "name": "a" },
+              { "coverage": "[]", "covered_percent": 66.65, "name": "b" }
+            ]
+          }
+        COVERAGE
+
+        subject = described_class.new(coverage)
+
+        expect(subject.to_markdown).to include "| 🟡 | 33.34% | a |"
+        expect(subject.to_markdown).to include "| 🟡 | 66.65% | b |"
+      end
+
+      it "is green when coverage is greater than 66.65%" do
+        coverage = <<~COVERAGE
+          {
+            "source_files": [
+              { "coverage": "[]", "covered_percent": 66.66, "name": "a" },
+              { "coverage": "[]", "covered_percent": 99.99, "name": "b" }
+            ]
+          }
+        COVERAGE
+
+        subject = described_class.new(coverage)
+
+        expect(subject.to_markdown).to include "| 🟢 | 66.66% | a |"
+        expect(subject.to_markdown).to include "| 🟢 | 99.99% | b |"
+      end
+    end
+  end
 end
