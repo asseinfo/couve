@@ -347,11 +347,11 @@ RSpec.describe Couve::Parser do
       expected = <<~MARKDOWN
         ## Coverage problems
 
-        | Coverage | File | Not covered lines |
-        | --- | --- | --- |
-        | 🔴 30% | app/graphql/resolvers/people_resolver.rb | 22, 24, 33, 34, 36, 39, 43, 48, 49, 51 |
-        | 🟡 50% | app/javascript/routes.jsx | 24 |
-        | 🟢 93.33% | app/javascript/index.tsx | 28 |
+        | Rating | Coverage | File | Not covered lines |
+        | :---: | ---: | :--- | :--- |
+        | 🔴 | 30% | app/graphql/resolvers/people_resolver.rb | 22, 24, 33, 34, 36, 39, 43, 48, 49, 51 |
+        | 🟡 | 50% | app/javascript/routes.jsx | 24 |
+        | 🟢 | 93.33% | app/javascript/index.tsx | 28 |
       MARKDOWN
 
       subject = described_class.new(coverage)
@@ -428,8 +428,8 @@ RSpec.describe Couve::Parser do
 
         subject = described_class.new(coverage)
 
-        expect(subject.to_markdown).to include "| 🔴 0% | a |"
-        expect(subject.to_markdown).to include "| 🔴 33.32% | b |"
+        expect(subject.to_markdown).to include "| 🔴 | 0% | a |"
+        expect(subject.to_markdown).to include "| 🔴 | 33.32% | b |"
       end
 
       it "is yellow when coverage is between 33.34% and 66.65%" do
@@ -444,8 +444,8 @@ RSpec.describe Couve::Parser do
 
         subject = described_class.new(coverage)
 
-        expect(subject.to_markdown).to include "| 🟡 33.34% | a |"
-        expect(subject.to_markdown).to include "| 🟡 66.65% | b |"
+        expect(subject.to_markdown).to include "| 🟡 | 33.34% | a |"
+        expect(subject.to_markdown).to include "| 🟡 | 66.65% | b |"
       end
 
       it "is green when coverage is greater than 66.65%" do
@@ -460,8 +460,8 @@ RSpec.describe Couve::Parser do
 
         subject = described_class.new(coverage)
 
-        expect(subject.to_markdown).to include "| 🟢 66.66% | a |"
-        expect(subject.to_markdown).to include "| 🟢 99.99% | b |"
+        expect(subject.to_markdown).to include "| 🟢 | 66.66% | a |"
+        expect(subject.to_markdown).to include "| 🟢 | 99.99% | b |"
       end
     end
   end

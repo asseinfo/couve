@@ -43,14 +43,14 @@ module Couve
         percentage = source_file[:covered_percent].round(2)
         indicator = percentage_indicator(percentage)
 
-        "| #{indicator} #{percentage}% | #{source_file[:name]} | #{not_covered_lines(source_file)} |"
+        "| #{indicator} | #{percentage}% | #{source_file[:name]} | #{not_covered_lines(source_file)} |"
       end
 
       <<~MARKDOWN
         ## Coverage problems
 
-        | Coverage | File | Not covered lines |
-        | --- | --- | --- |
+        | Rating | Coverage | File | Not covered lines |
+        | :---: | ---: | :--- | :--- |
         #{rows.join("\n")}
       MARKDOWN
     end

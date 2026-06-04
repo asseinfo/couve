@@ -46,15 +46,15 @@ $ couve path/to/coverage.json path/to/report.html   # HTML report
 $ couve path/to/coverage.json path/to/report.md      # Markdown report
 ```
 
-The Markdown report renders as a GitHub-flavored table, with a colored indicator (🔴/🟡/🟢) reflecting each file's coverage level:
+The Markdown report renders as a GitHub-flavored table, with a colored rating indicator (🔴/🟡/🟢) reflecting each file's coverage level:
 
 ```markdown
 ## Coverage problems
 
-| Coverage | File | Not covered lines |
-| --- | --- | --- |
-| 🔴 30% | app/models/foo.rb | 3, 8, 21 |
-| 🟡 50% | app/services/bar.rb | 5, 6 |
+| Rating | Coverage | File | Not covered lines |
+| :---: | ---: | :--- | :--- |
+| 🔴 | 30% | app/models/foo.rb | 3, 8, 21 |
+| 🟡 | 50% | app/services/bar.rb | 5, 6 |
 ```
 
 A typical CI setup keeps the HTML report as an artifact and posts the Markdown report to the pull request, e.g. with the GitHub CLI:

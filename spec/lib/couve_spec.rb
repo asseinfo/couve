@@ -43,7 +43,7 @@ RSpec.describe Couve do
       generated = File.read(output_file)
 
       expect(generated).to start_with "## Coverage problems\n"
-      expect(generated).to include "| Coverage | File | Not covered lines |"
+      expect(generated).to include "| Rating | Coverage | File | Not covered lines |"
       expect(generated).to_not include "<html>"
     end
   end
