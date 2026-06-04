@@ -26,13 +26,44 @@ Or install it yourself as:
 gem install couve
 ```
 
-2. Run the following command in your terminal, providing the path to your JSON coverage file and the desired output HTML file.
+2. Run the following command in your terminal, providing the path to your JSON coverage file and the desired output file.
 
 ```
 $ couve path/to/coverage.json path/to/output.html
 ```
 
 Couve will process the coverage data and generate a human-readable HTML report, providing insights into your project's test coverage.
+
+### Output formats
+
+Couve picks the output format from the output file's extension:
+
+- `.html` (or anything else) — a self-contained, styled **HTML** report. Great for uploading as a CI artifact.
+- `.md` — a **Markdown** report. Great for posting as a pull request comment.
+
+```
+$ couve path/to/coverage.json path/to/report.html   # HTML report
+$ couve path/to/coverage.json path/to/report.md      # Markdown report
+```
+
+The Markdown report renders as a GitHub-flavored table, with a colored indicator (🔴/🟡/🟢) reflecting each file's coverage level:
+
+```markdown
+## Coverage problems
+
+| Coverage | File | Not covered lines |
+| --- | --- | --- |
+| 🔴 30% | app/models/foo.rb | 3, 8, 21 |
+| 🟡 50% | app/services/bar.rb | 5, 6 |
+```
+
+A typical CI setup keeps the HTML report as an artifact and posts the Markdown report to the pull request, e.g. with the GitHub CLI:
+
+```sh
+couve coverage.json coverage.html   # upload as a CI artifact
+couve coverage.json coverage.md     # post to the PR
+gh pr comment "$PR_NUMBER" --body-file coverage.md
+```
 
 ## Development
 

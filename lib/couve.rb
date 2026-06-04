@@ -11,8 +11,10 @@ module Couve
     coverage = File.read(coverage_file)
     parser = Couve::Parser.new(coverage)
 
+    report = output_file.end_with?(".md") ? parser.to_markdown : parser.to_html
+
     File.open(output_file, "w") do |f|
-      f.puts parser.to_html
+      f.puts report
     end
   end
 end

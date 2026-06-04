@@ -38,6 +38,23 @@ module Couve
       HTML
     end
 
+    def to_markdown
+      rows = @coverage[:source_files].map do |source_file|
+        percentage = source_file[:covered_percent].round(2)
+        indicator = percentage_indicator(percentage)
+
+        "| #{indicator} #{percentage}% | #{source_file[:name]} | #{not_covered_lines(source_file)} |"
+      end
+
+      <<~MARKDOWN
+        ## Coverage problems
+
+        | Coverage | File | Not covered lines |
+        | --- | --- | --- |
+        #{rows.join("\n")}
+      MARKDOWN
+    end
+
     private
 
     # rubocop:disable Metrics/MethodLength
@@ -81,6 +98,16 @@ module Couve
         "bg-warning"
       else
         "bg-success"
+      end
+    end
+
+    def percentage_indicator(percentage)
+      if percentage < 33.33
+        "🔴"
+      elsif percentage < 66.66
+        "🟡"
+      else
+        "🟢"
       end
     end
 
