@@ -3,7 +3,10 @@
 require "json"
 
 module Couve
-  class Parser
+  class Parser # rubocop:disable Metrics/ClassLength
+    RED_THRESHOLD = 33.33
+    GREEN_THRESHOLD = 66.66
+
     def initialize(coverage, changed_files: nil)
       @coverage = JSON.parse(coverage, symbolize_names: true)
 
@@ -61,6 +64,16 @@ module Couve
       MARKDOWN
     end
 
+    def low_coverage_files
+      @coverage[:source_files]
+        .select { |source_file| source_file[:covered_percent].round(2) < GREEN_THRESHOLD }
+        .map { |source_file| source_file[:name] }
+    end
+
+    def low_coverage?
+      low_coverage_files.any?
+    end
+
     private
 
     # rubocop:disable Metrics/MethodLength
@@ -98,9 +111,9 @@ module Couve
     # rubocop:enable Metrics/MethodLength
 
     def percentage_bar_color(percentage)
-      if percentage < 33.33
+      if percentage < RED_THRESHOLD
         "bg-danger"
-      elsif percentage < 66.66
+      elsif percentage < GREEN_THRESHOLD
         "bg-warning"
       else
         "bg-success"
@@ -108,9 +121,9 @@ module Couve
     end
 
     def percentage_indicator(percentage)
-      if percentage < 33.33
+      if percentage < RED_THRESHOLD
         "🔴"
-      elsif percentage < 66.66
+      elsif percentage < GREEN_THRESHOLD
         "🟡"
       else
         "🟢"

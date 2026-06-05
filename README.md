@@ -81,6 +81,27 @@ git diff --name-only origin/main...HEAD | couve coverage.json report.md --change
 
 Only files that appear both in the list and in the coverage data are shown; the rest of the project is left out. Coverage is still reported per file (the whole file's percentage and missed lines), not just the lines in your diff.
 
+### Failing the build on low coverage
+
+By default couve always exits `0` — it only generates the report. Pass `--fail-on-low-coverage` to make couve exit `1` when any **reported** file is below the green threshold, i.e. rated 🔴 or 🟡 (`< 66.66%`):
+
+```sh
+couve coverage.json report.md --fail-on-low-coverage
+```
+
+The report is written **before** couve exits, so the offending files stay visible in the report (and in any PR comment built from it). The offending files are also printed to standard error:
+
+```
+couve: coverage below 66.66% in app/models/foo.rb, app/services/bar.rb
+```
+
+The threshold is the same fixed band used for the rating indicators; there is nothing to configure. The flag respects `--changed-files` scope: when you only report the files you changed, only those files are evaluated, so a green (or empty) changed-file set passes the build even if untouched files elsewhere are poorly covered.
+
+```sh
+# Post the report to the PR, then redden the build if a changed file is under-covered:
+git diff --name-only origin/main...HEAD | couve coverage.json report.md --changed-files - --fail-on-low-coverage
+```
+
 ## Development
 
 To contribute to Couve's development, follow these steps:

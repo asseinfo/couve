@@ -523,4 +523,92 @@ RSpec.describe Couve::Parser do
       expect(found_percentages).to eql ["50%", "100%"]
     end
   end
+
+  describe "#low_coverage_files" do
+    it "returns only the files below the green threshold" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            { "coverage": "[]", "covered_percent": 30, "name": "app/red.rb" },
+            { "coverage": "[]", "covered_percent": 50, "name": "app/yellow.rb" },
+            { "coverage": "[]", "covered_percent": 80, "name": "app/green.rb" }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+
+      expect(subject.low_coverage_files).to eql ["app/red.rb", "app/yellow.rb"]
+    end
+
+    it "treats 66.66% as green and 66.65% as low, matching the report indicators" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            { "coverage": "[]", "covered_percent": 66.65, "name": "app/low.rb" },
+            { "coverage": "[]", "covered_percent": 66.66, "name": "app/ok.rb" }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+
+      expect(subject.low_coverage_files).to eql ["app/low.rb"]
+    end
+
+    it "rounds to two decimals like the report, so 66.659% counts as green" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            { "coverage": "[]", "covered_percent": 66.659, "name": "app/rounds_up.rb" }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage)
+
+      expect(subject.low_coverage_files).to be_empty
+    end
+
+    it "is scoped to the changed files when given" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            { "coverage": "[]", "covered_percent": 30, "name": "app/untouched_red.rb" },
+            { "coverage": "[]", "covered_percent": 95, "name": "app/touched_green.rb" }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage, changed_files: ["app/touched_green.rb"])
+
+      expect(subject.low_coverage_files).to be_empty
+    end
+  end
+
+  describe "#low_coverage?" do
+    it "is true when a reported file is below the green threshold" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            { "coverage": "[]", "covered_percent": 50, "name": "app/yellow.rb" }
+          ]
+        }
+      COVERAGE
+
+      expect(described_class.new(coverage).low_coverage?).to be true
+    end
+
+    it "is false when every reported file is green" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
+            { "coverage": "[]", "covered_percent": 80, "name": "app/green.rb" }
+          ]
+        }
+      COVERAGE
+
+      expect(described_class.new(coverage).low_coverage?).to be false
+    end
+  end
 end
