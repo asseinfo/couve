@@ -54,7 +54,7 @@ RSpec.describe Couve::Parser do
         <body>
           <div class="container mt-5">
             <h1 class="display-5">
-              Coverage problems
+              Coverage report
             </h1>
 
             <table class="table table-hover mt-5">
@@ -345,7 +345,7 @@ RSpec.describe Couve::Parser do
       COVERAGE
 
       expected = <<~MARKDOWN
-        ## Coverage problems
+        ## Coverage report
 
         | Rating | Coverage | File | Not covered lines |
         | :---: | ---: | :--- | :--- |
@@ -463,6 +463,64 @@ RSpec.describe Couve::Parser do
         expect(subject.to_markdown).to include "| 🟢 | 66.66% | a |"
         expect(subject.to_markdown).to include "| 🟢 | 99.99% | b |"
       end
+    end
+  end
+
+  describe "with changed_files" do
+    let(:coverage) do
+      <<~COVERAGE
+        {
+          "source_files": [
+            { "coverage": "[1,1]", "covered_percent": 100, "name": "app/models/fully_covered.rb" },
+            { "coverage": "[1,0]", "covered_percent": 50, "name": "app/models/touched.rb" },
+            { "coverage": "[1,1,1,1,0]", "covered_percent": 80, "name": "app/models/untouched.rb" }
+          ]
+        }
+      COVERAGE
+    end
+
+    it "shows only the files in the list" do
+      subject = described_class.new(coverage, changed_files: ["app/models/touched.rb"])
+
+      expect(subject.to_markdown).to include "app/models/touched.rb"
+      expect(subject.to_markdown).to_not include "app/models/untouched.rb"
+    end
+
+    it "includes a fully covered file when it is in the list" do
+      subject = described_class.new(coverage, changed_files: ["app/models/fully_covered.rb"])
+
+      expect(subject.to_markdown).to include "| 🟢 | 100% | app/models/fully_covered.rb |"
+    end
+
+    it "excludes a file below 100% that is not in the list" do
+      subject = described_class.new(coverage, changed_files: ["app/models/touched.rb"])
+
+      expect(subject.to_markdown).to_not include "app/models/untouched.rb"
+    end
+
+    it "ignores listed paths that have no coverage data" do
+      subject = described_class.new(coverage, changed_files: ["app/models/touched.rb", "config/routes.rb"])
+
+      expect(subject.to_markdown).to include "app/models/touched.rb"
+      expect(subject.to_markdown).to_not include "config/routes.rb"
+    end
+
+    it "renders the listed files in the html report" do
+      subject = described_class.new(coverage, changed_files: ["app/models/fully_covered.rb", "app/models/touched.rb"])
+
+      doc = Nokogiri::HTML(subject.to_html)
+      names = doc.css("tbody tr td:nth-child(3)").map { |td| td.text.strip }
+
+      expect(names).to eql ["app/models/touched.rb", "app/models/fully_covered.rb"]
+    end
+
+    it "sorts the listed files by less covered first" do
+      subject = described_class.new(coverage, changed_files: ["app/models/fully_covered.rb", "app/models/touched.rb"])
+
+      rows = subject.to_markdown.lines.grep(/\| /).reject { |line| line.include?("---") || line.include?("Coverage |") }
+      found_percentages = rows.map { |row| row[/\d+(\.\d+)?%/] }
+
+      expect(found_percentages).to eql ["50%", "100%"]
     end
   end
 end
