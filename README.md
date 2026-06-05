@@ -65,6 +65,22 @@ couve coverage.json coverage.md     # post to the PR
 gh pr comment "$PR_NUMBER" --body-file coverage.md
 ```
 
+### Reporting only the files you changed
+
+By default the report lists every file in the coverage data that is below 100%. With `--changed-files` you flip that around: instead of a project-wide view, you get the coverage status of exactly the files you touched on a branch — including the ones that are fully covered.
+
+Pass a file with one repo-relative path per line, or `-` to read the list from standard input:
+
+```sh
+git diff --name-only origin/main...HEAD > changed.txt
+couve coverage.json report.md --changed-files changed.txt
+
+# or pipe the list straight in:
+git diff --name-only origin/main...HEAD | couve coverage.json report.md --changed-files -
+```
+
+Only files that appear both in the list and in the coverage data are shown; the rest of the project is left out. Coverage is still reported per file (the whole file's percentage and missed lines), not just the lines in your diff.
+
 ## Development
 
 To contribute to Couve's development, follow these steps:

@@ -4,9 +4,15 @@ require "json"
 
 module Couve
   class Parser
-    def initialize(coverage)
+    def initialize(coverage, changed_files: nil)
       @coverage = JSON.parse(coverage, symbolize_names: true)
-      @coverage[:source_files].reject! { |file| file[:covered_percent] == 100 }
+
+      if changed_files
+        @coverage[:source_files].select! { |file| changed_files.include?(file[:name]) }
+      else
+        @coverage[:source_files].reject! { |file| file[:covered_percent] == 100 }
+      end
+
       @coverage[:source_files].sort_by! { |file| file[:covered_percent] }
     end
 
@@ -16,7 +22,7 @@ module Couve
           <body>
             <div class="container mt-5">
               <h1 class="display-5">
-                Coverage problems
+                Coverage report
               </h1>
 
               <table class="table table-hover mt-5">
@@ -47,7 +53,7 @@ module Couve
       end
 
       <<~MARKDOWN
-        ## Coverage problems
+        ## Coverage report
 
         | Rating | Coverage | File | Not covered lines |
         | :---: | ---: | :--- | :--- |
