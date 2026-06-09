@@ -70,7 +70,7 @@ RSpec.describe Couve::Parser do
                   <td class="col-1">
                     <div class="progress">
                       <div
-                        class="progress-bar bg-success"
+                        class="progress-bar bg-warning"
                         role="progressbar"
                         style="width: 89%;"
                         aria-valuenow="89"
@@ -86,7 +86,7 @@ RSpec.describe Couve::Parser do
                   <td class="col-1">
                     <div class="progress">
                       <div
-                        class="progress-bar bg-success"
+                        class="progress-bar bg-warning"
                         role="progressbar"
                         style="width: 95%;"
                         aria-valuenow="95"
@@ -102,7 +102,7 @@ RSpec.describe Couve::Parser do
                   <td class="col-1">
                     <div class="progress">
                       <div
-                        class="progress-bar bg-success"
+                        class="progress-bar bg-warning"
                         role="progressbar"
                         style="width: 99%;"
                         aria-valuenow="99"
@@ -219,7 +219,7 @@ RSpec.describe Couve::Parser do
       expect(td_elements.to_s).to include("<div class=\"progress-bar bg-danger\"")
     end
 
-    it "is yellow when coverage is between 33.34% and 66.65%" do
+    it "is yellow when coverage is between 33.34% and 99.99%" do
       coverage = <<~COVERAGE
         {
           "source_files": [
@@ -230,7 +230,7 @@ RSpec.describe Couve::Parser do
             },
             {
               "coverage": "[]",
-              "covered_percent": 66.65,
+              "covered_percent": 99.99,
               "name": ""
             }
           ]
@@ -247,18 +247,33 @@ RSpec.describe Couve::Parser do
       expect(td_elements.to_s).to include("<div class=\"progress-bar bg-warning\"")
     end
 
-    it "is green when coverage is greater than 66.65%" do
+    it "is green only when the file is fully covered" do
       coverage = <<~COVERAGE
         {
           "source_files": [
             {
               "coverage": "[]",
-              "covered_percent": 66.66,
-              "name": ""
-            },
+              "covered_percent": 100,
+              "name": "app/full.rb"
+            }
+          ]
+        }
+      COVERAGE
+
+      subject = described_class.new(coverage, changed_files: ["app/full.rb"])
+      doc = Nokogiri::HTML(subject.to_html)
+
+      td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
+      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-success\"")
+    end
+
+    it "colors from the unrounded percentage, even when it rounds up to the threshold" do
+      coverage = <<~COVERAGE
+        {
+          "source_files": [
             {
               "coverage": "[]",
-              "covered_percent": 99.99,
+              "covered_percent": 99.996,
               "name": ""
             }
           ]
@@ -268,11 +283,8 @@ RSpec.describe Couve::Parser do
       subject = described_class.new(coverage)
       doc = Nokogiri::HTML(subject.to_html)
 
-      td_elements = doc.css("tbody tr:nth-child(1) td:nth-child(1) .progress")
-      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-success\"")
-
-      td_elements = doc.css("tbody tr:nth-child(2) td:nth-child(1) .progress")
-      expect(td_elements.to_s).to include("<div class=\"progress-bar bg-success\"")
+      expect(doc.css("tbody tr td:nth-child(2)").text.strip).to eql "100.0%"
+      expect(doc.css("tbody .progress").to_s).to include("<div class=\"progress-bar bg-warning\"")
     end
   end
 
@@ -351,7 +363,7 @@ RSpec.describe Couve::Parser do
         | :---: | ---: | :--- | :--- |
         | 🔴 | 30% | app/graphql/resolvers/people_resolver.rb | 22, 24, 33, 34, 36, 39, 43, 48, 49, 51 |
         | 🟡 | 50% | app/javascript/routes.jsx | 24 |
-        | 🟢 | 93.33% | app/javascript/index.tsx | 28 |
+        | 🟡 | 93.33% | app/javascript/index.tsx | 28 |
       MARKDOWN
 
       subject = described_class.new(coverage)
@@ -432,27 +444,11 @@ RSpec.describe Couve::Parser do
         expect(subject.to_markdown).to include "| 🔴 | 33.32% | b |"
       end
 
-      it "is yellow when coverage is between 33.34% and 66.65%" do
+      it "is yellow when coverage is between 33.34% and 99.99%" do
         coverage = <<~COVERAGE
           {
             "source_files": [
               { "coverage": "[]", "covered_percent": 33.34, "name": "a" },
-              { "coverage": "[]", "covered_percent": 66.65, "name": "b" }
-            ]
-          }
-        COVERAGE
-
-        subject = described_class.new(coverage)
-
-        expect(subject.to_markdown).to include "| 🟡 | 33.34% | a |"
-        expect(subject.to_markdown).to include "| 🟡 | 66.65% | b |"
-      end
-
-      it "is green when coverage is greater than 66.65%" do
-        coverage = <<~COVERAGE
-          {
-            "source_files": [
-              { "coverage": "[]", "covered_percent": 66.66, "name": "a" },
               { "coverage": "[]", "covered_percent": 99.99, "name": "b" }
             ]
           }
@@ -460,8 +456,36 @@ RSpec.describe Couve::Parser do
 
         subject = described_class.new(coverage)
 
-        expect(subject.to_markdown).to include "| 🟢 | 66.66% | a |"
-        expect(subject.to_markdown).to include "| 🟢 | 99.99% | b |"
+        expect(subject.to_markdown).to include "| 🟡 | 33.34% | a |"
+        expect(subject.to_markdown).to include "| 🟡 | 99.99% | b |"
+      end
+
+      it "is green only when the file is fully covered" do
+        coverage = <<~COVERAGE
+          {
+            "source_files": [
+              { "coverage": "[]", "covered_percent": 100, "name": "a" }
+            ]
+          }
+        COVERAGE
+
+        subject = described_class.new(coverage, changed_files: ["a"])
+
+        expect(subject.to_markdown).to include "| 🟢 | 100% | a |"
+      end
+
+      it "rates from the unrounded percentage, even when it rounds up to the threshold" do
+        coverage = <<~COVERAGE
+          {
+            "source_files": [
+              { "coverage": "[]", "covered_percent": 99.996, "name": "a" }
+            ]
+          }
+        COVERAGE
+
+        subject = described_class.new(coverage)
+
+        expect(subject.to_markdown).to include "| 🟡 | 100.0% | a |"
       end
     end
   end
@@ -525,49 +549,51 @@ RSpec.describe Couve::Parser do
   end
 
   describe "#low_coverage_files" do
-    it "returns only the files below the green threshold" do
+    it "returns every reported file that is not fully covered" do
       coverage = <<~COVERAGE
         {
           "source_files": [
             { "coverage": "[]", "covered_percent": 30, "name": "app/red.rb" },
             { "coverage": "[]", "covered_percent": 50, "name": "app/yellow.rb" },
-            { "coverage": "[]", "covered_percent": 80, "name": "app/green.rb" }
+            { "coverage": "[]", "covered_percent": 80, "name": "app/high.rb" },
+            { "coverage": "[]", "covered_percent": 100, "name": "app/full.rb" }
           ]
         }
       COVERAGE
 
-      subject = described_class.new(coverage)
+      changed_files = ["app/red.rb", "app/yellow.rb", "app/high.rb", "app/full.rb"]
+      subject = described_class.new(coverage, changed_files: changed_files)
 
-      expect(subject.low_coverage_files).to eql ["app/red.rb", "app/yellow.rb"]
+      expect(subject.low_coverage_files).to eql ["app/red.rb", "app/yellow.rb", "app/high.rb"]
     end
 
-    it "treats 66.66% as green and 66.65% as low, matching the report indicators" do
+    it "treats 100% as green and 99.99% as low, matching the report indicators" do
       coverage = <<~COVERAGE
         {
           "source_files": [
-            { "coverage": "[]", "covered_percent": 66.65, "name": "app/low.rb" },
-            { "coverage": "[]", "covered_percent": 66.66, "name": "app/ok.rb" }
+            { "coverage": "[]", "covered_percent": 99.99, "name": "app/low.rb" },
+            { "coverage": "[]", "covered_percent": 100, "name": "app/ok.rb" }
           ]
         }
       COVERAGE
 
-      subject = described_class.new(coverage)
+      subject = described_class.new(coverage, changed_files: ["app/low.rb", "app/ok.rb"])
 
       expect(subject.low_coverage_files).to eql ["app/low.rb"]
     end
 
-    it "rounds to two decimals like the report, so 66.659% counts as green" do
+    it "compares the unrounded percentage, so a file that rounds up to the threshold is still low" do
       coverage = <<~COVERAGE
         {
           "source_files": [
-            { "coverage": "[]", "covered_percent": 66.659, "name": "app/rounds_up.rb" }
+            { "coverage": "[]", "covered_percent": 99.996, "name": "app/rounds_up.rb" }
           ]
         }
       COVERAGE
 
       subject = described_class.new(coverage)
 
-      expect(subject.low_coverage_files).to be_empty
+      expect(subject.low_coverage_files).to eql ["app/rounds_up.rb"]
     end
 
     it "is scoped to the changed files when given" do
@@ -575,7 +601,7 @@ RSpec.describe Couve::Parser do
         {
           "source_files": [
             { "coverage": "[]", "covered_percent": 30, "name": "app/untouched_red.rb" },
-            { "coverage": "[]", "covered_percent": 95, "name": "app/touched_green.rb" }
+            { "coverage": "[]", "covered_percent": 100, "name": "app/touched_green.rb" }
           ]
         }
       COVERAGE
@@ -599,16 +625,18 @@ RSpec.describe Couve::Parser do
       expect(described_class.new(coverage).low_coverage?).to be true
     end
 
-    it "is false when every reported file is green" do
+    it "is false when every reported file is fully covered" do
       coverage = <<~COVERAGE
         {
           "source_files": [
-            { "coverage": "[]", "covered_percent": 80, "name": "app/green.rb" }
+            { "coverage": "[]", "covered_percent": 100, "name": "app/full.rb" }
           ]
         }
       COVERAGE
 
-      expect(described_class.new(coverage).low_coverage?).to be false
+      subject = described_class.new(coverage, changed_files: ["app/full.rb"])
+
+      expect(subject.low_coverage?).to be false
     end
   end
 end

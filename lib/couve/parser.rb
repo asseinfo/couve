@@ -5,7 +5,7 @@ require "json"
 module Couve
   class Parser # rubocop:disable Metrics/ClassLength
     RED_THRESHOLD = 33.33
-    GREEN_THRESHOLD = 66.66
+    GREEN_THRESHOLD = 100
 
     def initialize(coverage, changed_files: nil)
       @coverage = JSON.parse(coverage, symbolize_names: true)
@@ -50,7 +50,7 @@ module Couve
     def to_markdown
       rows = @coverage[:source_files].map do |source_file|
         percentage = source_file[:covered_percent].round(2)
-        indicator = percentage_indicator(percentage)
+        indicator = percentage_indicator(source_file[:covered_percent])
 
         "| #{indicator} | #{percentage}% | #{source_file[:name]} | #{not_covered_lines(source_file)} |"
       end
@@ -66,7 +66,7 @@ module Couve
 
     def low_coverage_files
       @coverage[:source_files]
-        .select { |source_file| source_file[:covered_percent].round(2) < GREEN_THRESHOLD }
+        .select { |source_file| source_file[:covered_percent] < GREEN_THRESHOLD }
         .map { |source_file| source_file[:name] }
     end
 
@@ -83,7 +83,7 @@ module Couve
 
       @coverage[:source_files].each do |source_file|
         percentage = source_file[:covered_percent].round(2)
-        bg_color = percentage_bar_color(percentage)
+        bg_color = percentage_bar_color(source_file[:covered_percent])
 
         html << "  <tr>"
         html << "    <td class=\"col-1\">"
