@@ -72,13 +72,13 @@ RSpec.describe Couve::Parser do
                       <div
                         class="progress-bar bg-warning"
                         role="progressbar"
-                        style="width: 89%;"
-                        aria-valuenow="89"
+                        style="width: 89.00%;"
+                        aria-valuenow="89.00"
                         aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                   </td>
-                  <td class="col-1">89%</td>
+                  <td class="col-1">89.00%</td>
                   <td class="col-8 text-break">app/javascript/index.tsx</td>
                   <td class="col-3 text-break"></td>
                 </tr>
@@ -88,13 +88,13 @@ RSpec.describe Couve::Parser do
                       <div
                         class="progress-bar bg-warning"
                         role="progressbar"
-                        style="width: 95%;"
-                        aria-valuenow="95"
+                        style="width: 95.00%;"
+                        aria-valuenow="95.00"
                         aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                   </td>
-                  <td class="col-1">95%</td>
+                  <td class="col-1">95.00%</td>
                   <td class="col-8 text-break">app/javascript/routes.jsx</td>
                   <td class="col-3 text-break"></td>
                 </tr>
@@ -104,13 +104,13 @@ RSpec.describe Couve::Parser do
                       <div
                         class="progress-bar bg-warning"
                         role="progressbar"
-                        style="width: 99%;"
-                        aria-valuenow="99"
+                        style="width: 99.00%;"
+                        aria-valuenow="99.00"
                         aria-valuemin="0" aria-valuemax="100">
                       </div>
                     </div>
                   </td>
-                  <td class="col-1">99%</td>
+                  <td class="col-1">99.00%</td>
                   <td class="col-8 text-break">app/graphql/resolvers/people_resolver.rb</td>
                   <td class="col-3 text-break"></td>
                 </tr>
@@ -154,8 +154,8 @@ RSpec.describe Couve::Parser do
 
     subject = described_class.new(coverage)
 
-    expect(subject.to_html).to include "95%"
-    expect(subject.to_html).to_not include "100%"
+    expect(subject.to_html).to include "95.00%"
+    expect(subject.to_html).to_not include "100.00%"
   end
 
   it "sorts by less covered first" do
@@ -187,7 +187,7 @@ RSpec.describe Couve::Parser do
     td_elements = doc.css("tbody tr td:nth-child(2)")
     found_percentages = td_elements.map { |td| td.text.strip }
 
-    expect(found_percentages).to eql ["60%", "83.33%", "93.33%"]
+    expect(found_percentages).to eql ["60.00%", "83.33%", "93.33%"]
   end
 
   describe "coverage level colors" do
@@ -267,7 +267,7 @@ RSpec.describe Couve::Parser do
       expect(td_elements.to_s).to include("<div class=\"progress-bar bg-success\"")
     end
 
-    it "colors from the unrounded percentage, even when it rounds up to the threshold" do
+    it "never colors or displays a partially covered file as fully covered" do
       coverage = <<~COVERAGE
         {
           "source_files": [
@@ -283,7 +283,7 @@ RSpec.describe Couve::Parser do
       subject = described_class.new(coverage)
       doc = Nokogiri::HTML(subject.to_html)
 
-      expect(doc.css("tbody tr td:nth-child(2)").text.strip).to eql "100.0%"
+      expect(doc.css("tbody tr td:nth-child(2)").text.strip).to eql "99.99%"
       expect(doc.css("tbody .progress").to_s).to include("<div class=\"progress-bar bg-warning\"")
     end
   end
@@ -361,8 +361,8 @@ RSpec.describe Couve::Parser do
 
         | Rating | Coverage | File | Not covered lines |
         | :---: | ---: | :--- | :--- |
-        | 🔴 | 30% | app/graphql/resolvers/people_resolver.rb | 22, 24, 33, 34, 36, 39, 43, 48, 49, 51 |
-        | 🟡 | 50% | app/javascript/routes.jsx | 24 |
+        | 🔴 | 30.00% | app/graphql/resolvers/people_resolver.rb | 22, 24, 33, 34, 36, 39, 43, 48, 49, 51 |
+        | 🟡 | 50.00% | app/javascript/routes.jsx | 24 |
         | 🟡 | 93.33% | app/javascript/index.tsx | 28 |
       MARKDOWN
 
@@ -391,8 +391,8 @@ RSpec.describe Couve::Parser do
 
       subject = described_class.new(coverage)
 
-      expect(subject.to_markdown).to include "95%"
-      expect(subject.to_markdown).to_not include "100%"
+      expect(subject.to_markdown).to include "95.00%"
+      expect(subject.to_markdown).to_not include "100.00%"
       expect(subject.to_markdown).to_not include "index.tsx"
     end
 
@@ -424,7 +424,7 @@ RSpec.describe Couve::Parser do
       rows = subject.to_markdown.lines.grep(/\| /).reject { |line| line.include?("---") || line.include?("Coverage |") }
       found_percentages = rows.map { |row| row[/\d+(\.\d+)?%/] }
 
-      expect(found_percentages).to eql ["60%", "83.33%", "93.33%"]
+      expect(found_percentages).to eql ["60.00%", "83.33%", "93.33%"]
     end
 
     describe "coverage level indicators" do
@@ -440,7 +440,7 @@ RSpec.describe Couve::Parser do
 
         subject = described_class.new(coverage)
 
-        expect(subject.to_markdown).to include "| 🔴 | 0% | a |"
+        expect(subject.to_markdown).to include "| 🔴 | 0.00% | a |"
         expect(subject.to_markdown).to include "| 🔴 | 33.32% | b |"
       end
 
@@ -471,10 +471,10 @@ RSpec.describe Couve::Parser do
 
         subject = described_class.new(coverage, changed_files: ["a"])
 
-        expect(subject.to_markdown).to include "| 🟢 | 100% | a |"
+        expect(subject.to_markdown).to include "| 🟢 | 100.00% | a |"
       end
 
-      it "rates from the unrounded percentage, even when it rounds up to the threshold" do
+      it "never rates or displays a partially covered file as fully covered" do
         coverage = <<~COVERAGE
           {
             "source_files": [
@@ -485,7 +485,7 @@ RSpec.describe Couve::Parser do
 
         subject = described_class.new(coverage)
 
-        expect(subject.to_markdown).to include "| 🟡 | 100.0% | a |"
+        expect(subject.to_markdown).to include "| 🟡 | 99.99% | a |"
       end
     end
   end
@@ -513,7 +513,7 @@ RSpec.describe Couve::Parser do
     it "includes a fully covered file when it is in the list" do
       subject = described_class.new(coverage, changed_files: ["app/models/fully_covered.rb"])
 
-      expect(subject.to_markdown).to include "| 🟢 | 100% | app/models/fully_covered.rb |"
+      expect(subject.to_markdown).to include "| 🟢 | 100.00% | app/models/fully_covered.rb |"
     end
 
     it "excludes a file below 100% that is not in the list" do
@@ -544,7 +544,7 @@ RSpec.describe Couve::Parser do
       rows = subject.to_markdown.lines.grep(/\| /).reject { |line| line.include?("---") || line.include?("Coverage |") }
       found_percentages = rows.map { |row| row[/\d+(\.\d+)?%/] }
 
-      expect(found_percentages).to eql ["50%", "100%"]
+      expect(found_percentages).to eql ["50.00%", "100.00%"]
     end
   end
 

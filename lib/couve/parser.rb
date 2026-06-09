@@ -49,7 +49,7 @@ module Couve
 
     def to_markdown
       rows = @coverage[:source_files].map do |source_file|
-        percentage = source_file[:covered_percent].round(2)
+        percentage = format("%.2f", source_file[:covered_percent].floor(2))
         indicator = percentage_indicator(source_file[:covered_percent])
 
         "| #{indicator} | #{percentage}% | #{source_file[:name]} | #{not_covered_lines(source_file)} |"
@@ -82,7 +82,7 @@ module Couve
       html = ["<tbody>"]
 
       @coverage[:source_files].each do |source_file|
-        percentage = source_file[:covered_percent].round(2)
+        percentage = format("%.2f", source_file[:covered_percent].floor(2))
         bg_color = percentage_bar_color(source_file[:covered_percent])
 
         html << "  <tr>"

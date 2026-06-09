@@ -53,8 +53,8 @@ The Markdown report renders as a GitHub-flavored table, with a colored rating in
 
 | Rating | Coverage | File | Not covered lines |
 | :---: | ---: | :--- | :--- |
-| 🔴 | 30% | app/models/foo.rb | 3, 8, 21 |
-| 🟡 | 50% | app/services/bar.rb | 5, 6 |
+| 🔴 | 30.00% | app/models/foo.rb | 3, 8, 21 |
+| 🟡 | 50.00% | app/services/bar.rb | 5, 6 |
 ```
 
 A typical CI setup keeps the HTML report as an artifact and posts the Markdown report to the pull request, e.g. with the GitHub CLI:
