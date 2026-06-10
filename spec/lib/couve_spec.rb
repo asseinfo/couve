@@ -100,14 +100,14 @@ RSpec.describe Couve do
           subject.start(["spec/fixtures/codeclimate.json", output_file, "--fail-on-low-coverage"])
         rescue SystemExit
           # expected
-        end.to output(/couve: coverage below 66.66% in .*people_resolver\.rb/).to_stderr
+        end.to output(/couve: coverage below 100% in .*people_resolver\.rb/).to_stderr
       end
 
       it "does not exit when every reported file is green" do
         output_file = "tmp/pass.md"
         list_file = "tmp/pass.txt"
         FileUtils.rm_f(output_file)
-        File.write(list_file, "app/javascript/routes.jsx\n")
+        File.write(list_file, "app/models/fully_covered.rb\n")
 
         expect do
           subject.start(["spec/fixtures/codeclimate.json", output_file, "--changed-files", list_file,

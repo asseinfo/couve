@@ -46,15 +46,15 @@ $ couve path/to/coverage.json path/to/report.html   # HTML report
 $ couve path/to/coverage.json path/to/report.md      # Markdown report
 ```
 
-The Markdown report renders as a GitHub-flavored table, with a colored rating indicator (🔴/🟡/🟢) reflecting each file's coverage level:
+The Markdown report renders as a GitHub-flavored table, with a colored rating indicator reflecting each file's coverage level — 🔴 below 33.33%, 🟡 from there up to (but not including) 100%, and 🟢 only for fully covered files:
 
 ```markdown
 ## Coverage problems
 
 | Rating | Coverage | File | Not covered lines |
 | :---: | ---: | :--- | :--- |
-| 🔴 | 30% | app/models/foo.rb | 3, 8, 21 |
-| 🟡 | 50% | app/services/bar.rb | 5, 6 |
+| 🔴 | 30.00% | app/models/foo.rb | 3, 8, 21 |
+| 🟡 | 50.00% | app/services/bar.rb | 5, 6 |
 ```
 
 A typical CI setup keeps the HTML report as an artifact and posts the Markdown report to the pull request, e.g. with the GitHub CLI:
@@ -83,7 +83,7 @@ Only files that appear both in the list and in the coverage data are shown; the 
 
 ### Failing the build on low coverage
 
-By default couve always exits `0` — it only generates the report. Pass `--fail-on-low-coverage` to make couve exit `1` when any **reported** file is below the green threshold, i.e. rated 🔴 or 🟡 (`< 66.66%`):
+By default couve always exits `0` — it only generates the report. Pass `--fail-on-low-coverage` to make couve exit `1` when any **reported** file is below 100% coverage, i.e. rated 🔴 or 🟡:
 
 ```sh
 couve coverage.json report.md --fail-on-low-coverage
@@ -92,10 +92,10 @@ couve coverage.json report.md --fail-on-low-coverage
 The report is written **before** couve exits, so the offending files stay visible in the report (and in any PR comment built from it). The offending files are also printed to standard error:
 
 ```
-couve: coverage below 66.66% in app/models/foo.rb, app/services/bar.rb
+couve: coverage below 100% in app/models/foo.rb, app/services/bar.rb
 ```
 
-The threshold is the same fixed band used for the rating indicators; there is nothing to configure. The flag respects `--changed-files` scope: when you only report the files you changed, only those files are evaluated, so a green (or empty) changed-file set passes the build even if untouched files elsewhere are poorly covered.
+The threshold is fixed at 100%; there is nothing to configure. Note that the default report only lists files below 100%, so project-wide the flag fails whenever the report is non-empty. In practice you'll want it together with `--changed-files`: when you only report the files you changed, only those files are evaluated, so a fully covered (or empty) changed-file set passes the build even if untouched files elsewhere are poorly covered.
 
 ```sh
 # Post the report to the PR, then redden the build if a changed file is under-covered:
